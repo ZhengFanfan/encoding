@@ -15,7 +15,7 @@ aimFile = os.path.join(aimPath, "VIBMON_K1702B_1H.txt")
 n_input = 4000
 X = tf.placeholder("float", [None, n_input])
 n_hidden_1 = 1024  # 第一编码层神经元个数
-n_hidden_2 = 8  # 第二编码层神经元个数
+n_hidden_2 = 16  # 第二编码层神经元个数
 #n_hidden_3 = 256
 #n_hidden_4 = 64 
 # 权重和偏置的变化在编码层和解码层顺序是相逆的
@@ -73,7 +73,7 @@ with tf.Session() as sess:
         ax2 = plt.subplot(212)
         ax1.cla()
         ax1.plot(data, linewidth = 0.5, label = 'original')
-        
+        ax1.set_ylim([0, 1])
         try:
 
             encoder_result = sess.run(encoder_op, feed_dict={X: [data]})
@@ -82,6 +82,7 @@ with tf.Session() as sess:
             result_decode = encode_decode[0]
             ax2.cla()
             ax2.plot(result_decode, label = 'decoding', linewidth = 0.5, color = 'red')
+            ax2.set_ylim([0, 1])
             # plt.show()
             plt.savefig('vision/%s' % (num))  
         except Exception as e:

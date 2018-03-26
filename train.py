@@ -2,6 +2,7 @@ import tensorflow as tf
 import numpy as np  
 import matplotlib.pyplot as plt  
 import os
+import random
   
 # 导入MNIST数据  
 #from tensorflow.examples.tutorials.mnist import input_data  
@@ -10,26 +11,28 @@ import os
 # 导入波形数据
 from fileIO import readfile, dimstandard, next_batch
 aimFile = "VIBMON_K1702B_1H.txt"
-origin = readfile(aimFile)
-data = dimstandard(origin)[: 200]
+origin = readfile(aimFile)[:200]
+data_all = dimstandard(origin)
+random.shuffle(data_all)
+data = data_all
 # print(data)
 # exit()
 
 
 class endecode():
     def __init__(self): 
-        self.learning_rate = 0.001  
-        self.training_epochs = 500  
+        self.learning_rate = 0.0001
+        self.training_epochs = 10000  
         self.display_step = 5  
         self.examples_to_show = 10  
         self.n_input = 4000 
-        self.batch_size = 5
+        self.batch_size = 25
         self.all_batch = len(data)
       
         # tf Graph input (only pictures)  
         self.X = tf.placeholder("float", [None, self.n_input]) 
-        self.n_hidden_1 = 4000
-        self.n_hidden_2 = 64 # 第一编码层神经元个数  
+        self.n_hidden_1 = 1024
+        self.n_hidden_2 = 16 # 第一编码层神经元个数  
 #        self.n_hidden_3 = 32 # 第二编码层神经元个数  
 #        self.n_hidden_4 = 64  
         # self.n_hidden_5 = 64 
@@ -60,7 +63,7 @@ class endecode():
     # 构建编码器  
     def encoder(self, x):  
         layer_1 = tf.nn.sigmoid(tf.add(tf.matmul(x, self.W_encoder_h1), self.B_encoder_b1))  
-        layer_2 = tf.nn.sigmoid(tf.add(tf.matmul(layer_1, self.W_encoder_h2), self.B_encoder_b2)) 
+        layer_2 = tf.add(tf.matmul(layer_1, self.W_encoder_h2), self.B_encoder_b2) 
 #        layer_3 = tf.nn.sigmoid(tf.add(tf.matmul(layer_2, self.W_encoder_h3), self.B_encoder_b3)) 
 #        layer_4 = tf.nn.sigmoid(tf.add(tf.matmul(layer_3, self.W_encoder_h4), self.B_encoder_b4))
         return layer_2  
@@ -105,14 +108,15 @@ class endecode():
             total_batch = int(self.all_batch/self.batch_size) #总批数  
             min_cost = 1
             for epoch in range(1, self.training_epochs + 1):  
-                for i in range(self.all_batch):
-                    count = 0
+                count = 0
+                for i in range(self.all_batch + 1):                    
                     if i > 0 and i % self.batch_size == 0:
                         batch_xs = data[count: i]
                         _, acc = sess.run([optimizer, cost], feed_dict={self.X: batch_xs})  
                         count = i
+                        # print(count)
                 if epoch % self.display_step == 0:  
-                    print("Epoch:", '%04d' % (epoch), "cost=", "{:.9f}".format(acc))  
+                    print("Epoch:", '%04d' % (epoch), "cost=", "{:.9f}".format(acc))   
                 if acc < min_cost:
                     min_cost = acc
                     saver.save(sess, "./param/selfencoding.ckpt")

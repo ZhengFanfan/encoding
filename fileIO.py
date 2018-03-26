@@ -1,6 +1,7 @@
 import os
 import matplotlib.pyplot as plt
 import numpy as np
+import random
 
 def readfile(aimFile):
     try:
@@ -26,39 +27,24 @@ def convert(b):
             container.append(new_item)
     return container[: 4000]
 
-def plot(container, classification, num):
-    plt.plot(container)
-#    plt.ylim(0,max(credibilityDis[i]) + 0.002) 
-#    plt.plot(credibilityDis[i])
-    plt.savefig('vision/%s/%s' % (classification, num))  
-    plt.cla()
-
-
 def normalization(data):
     data_max = max(data)
     data_min = min(data)
     data_range = data_max - data_min
-    data = list(map(lambda x: (x - data_min)/data_range, data))    
+    data = list(map(lambda x: ((x - data_min)/data_range), data))    
     return data
 
 def dimstandard(data):
-    data = list(map(convert, data))  
-#    print(len(data))
-#    data_new = []
-#    for i in range(len(all_gruop)):
-#        for item in all_gruop[i]:
-#            data_new.append(item)
-    data_new = list(map(normalization, data))
-#    data_final = []
-#    count = 0
-#    for i in range(len(data_new) + 1):
-#        if i > 0 and i % 4000 == 0:
-#            data_final.append(data_new[count: i])
-#            count = i
+    all_gruop = list(map(convert, data))  
+    data_new = list(map(normalization, all_gruop))
     data_final = list(map(lambda x: np.array(x), data_new))
     
     return data_final
 
+
+# ----------标准的批量训练数据读取方式---------------#
+# ----------yield生成器，每次只读取所需批次的数据----#
+# ----------由于数据量较少一次性读取所有数据占用的空间也不大，故暂未采用，后续完善再补上------#
 def next_batch(data, batch_size, num_epochs, shuffle=True):
     data = np.array(sourceData)  # 将sourceData转换为array存储
     data_size = len(sourceData)
@@ -78,14 +64,8 @@ def next_batch(data, batch_size, num_epochs, shuffle=True):
             yield shuffled_data[start_index:end_index]
 
 if __name__ == '__main__':
+    # exit()
     aimFile = "VIBMON_K1702B_1H.txt"
     origin = readfile(aimFile)
-#    print(len(origin))
     data = dimstandard(origin)
-
-    for num in range(len(data)):
-        plot(data[num], 'original', num)
-    data = list(map(np.fft.fft, data))
-#    print(data[0])
-    for num in range(len(data)):
-        plot(data[num], 'fft', num)
+    # print(len(data))
